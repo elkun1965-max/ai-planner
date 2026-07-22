@@ -10,6 +10,7 @@ const PRIORITIES: Priority[] = ["high", "medium", "low"];
 export async function POST(req: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
+    console.error("[/api/parse] ANTHROPIC_API_KEY відсутній у середовищі");
     return NextResponse.json(
       { error: "ANTHROPIC_API_KEY не налаштовано на сервері" },
       { status: 500 },
@@ -53,7 +54,17 @@ export async function POST(req: NextRequest) {
       messages: [{ role: "user", content: text }],
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "невідома помилка";
+    // Дістаємо максимум деталей у Vercel Runtime Logs: статус, тип, request-id.
+    const status =
+      err instanceof Anthropic.APIError ? err.status : undefined;
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[/api/parse] Anthropic API помилка:", {
+      status,
+      name: err instanceof Error ? err.name : "unknown",
+      message,
+      requestId:
+        err instanceof Anthropic.APIError ? err.request_id : undefined,
+    });
     return NextResponse.json(
       { error: "Помилка виклику Anthropic API: " + message },
       { status: 502 },
@@ -67,6 +78,10 @@ export async function POST(req: NextRequest) {
 
   const match = rawText.match(/\{[\s\S]*\}/);
   if (!match) {
+    console.error(
+      "[/api/parse] У відповіді немає JSON. rawText:",
+      rawText.slice(0, 500),
+    );
     return NextResponse.json(
       { error: "Модель повернула відповідь без JSON" },
       { status: 502 },
@@ -76,7 +91,13 @@ export async function POST(req: NextRequest) {
   let parsed: unknown;
   try {
     parsed = JSON.parse(match[0]);
-  } catch {
+  } catch (err) {
+    console.error(
+      "[/api/parse] JSON.parse впав:",
+      err instanceof Error ? err.message : err,
+      "| фрагмент:",
+      match[0].slice(0, 500),
+    );
     return NextResponse.json(
       { error: "Не вдалося розібрати JSON із відповіді моделі" },
       { status: 502 },
@@ -103,5 +124,6 @@ export async function POST(req: NextRequest) {
         .filter((t): t is ParsedTask => t !== null)
     : [];
 
+  console.log(`[/api/parse] Розібрано задач: ${tasks.length}`);
   return NextResponse.json({ tasks });
 }
