@@ -40,8 +40,3 @@ interface SpeechRecognitionLike {
 interface SpeechRecognitionCtor {
   new (): SpeechRecognitionLike;
 }
-
-interface Window {
-  SpeechRecognition?: SpeechRecognitionCtor;
-  webkitSpeechRecognition?: SpeechRecognitionCtor;
-}

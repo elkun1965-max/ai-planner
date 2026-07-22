@@ -54,16 +54,20 @@ export async function POST(req: NextRequest) {
       messages: [{ role: "user", content: text }],
     });
   } catch (err) {
-    // Дістаємо максимум деталей у Vercel Runtime Logs: статус, тип, request-id.
-    const status =
-      err instanceof Anthropic.APIError ? err.status : undefined;
+    // Дістаємо максимум деталей у Vercel Runtime Logs без залежності від
+    // точних типів SDK: статус, назву, повідомлення, request-id.
+    const e = err as {
+      status?: number;
+      name?: string;
+      message?: string;
+      request_id?: string;
+    };
     const message = err instanceof Error ? err.message : String(err);
     console.error("[/api/parse] Anthropic API помилка:", {
-      status,
-      name: err instanceof Error ? err.name : "unknown",
+      status: e?.status,
+      name: e?.name,
       message,
-      requestId:
-        err instanceof Anthropic.APIError ? err.request_id : undefined,
+      requestId: e?.request_id,
     });
     return NextResponse.json(
       { error: "Помилка виклику Anthropic API: " + message },

@@ -90,10 +90,12 @@ export default function CapturePage() {
       recRef.current?.stop();
       return;
     }
+    const speechWindow = window as unknown as {
+      SpeechRecognition?: SpeechRecognitionCtor;
+      webkitSpeechRecognition?: SpeechRecognitionCtor;
+    };
     const Ctor =
-      typeof window !== "undefined"
-        ? window.SpeechRecognition || window.webkitSpeechRecognition
-        : undefined;
+      speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
     if (!Ctor) {
       setHint("Голосовий ввід не підтримується цим браузером");
       return;
