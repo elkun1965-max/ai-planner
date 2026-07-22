@@ -1,6 +1,12 @@
 "use client";
 
-import { Capture, KEYS, Task, useStored } from "@/lib/store";
+import { Capture, KEYS, Priority, Task, useStored } from "@/lib/store";
+
+const PRIORITY_LABEL: Record<Priority, string> = {
+  high: "високий",
+  medium: "середній",
+  low: "низький",
+};
 
 export default function InboxPage() {
   const [tasks, setTasks, tasksReady] = useStored<Task[]>(KEYS.tasks, []);
@@ -40,7 +46,21 @@ export default function InboxPage() {
           <ul className="list">
             {inbox.map((t) => (
               <li key={t.id} className="task">
-                <span className="task-title">{t.title}</span>
+                <div className="task-main">
+                  <span className="task-title">{t.title}</span>
+                  {(t.priority || t.deadline) && (
+                    <div className="task-meta">
+                      {t.priority && (
+                        <span className={"prio " + t.priority}>
+                          {PRIORITY_LABEL[t.priority]}
+                        </span>
+                      )}
+                      {t.deadline && (
+                        <span className="deadline">до {t.deadline}</span>
+                      )}
+                    </div>
+                  )}
+                </div>
                 <button
                   className="task-check"
                   aria-label="На сьогодні"

@@ -11,7 +11,9 @@ export type Capture = {
   parsed: boolean;
 };
 
-/** Задача після розбору. Поки що створюється лише вручну/АІ пізніше. */
+export type Priority = "high" | "medium" | "low";
+
+/** Задача після розбору — вручну або АІ через /api/parse. */
 export type Task = {
   id: string;
   title: string;
@@ -19,8 +21,19 @@ export type Task = {
   createdAt: number;
   /** inbox — розібрана, але не запланована; today — на сьогодні. */
   bucket: "inbox" | "today";
+  /** Пріоритет, який визначив АІ (за замовчуванням середній). */
+  priority?: Priority;
+  /** Дедлайн у форматі YYYY-MM-DD, якщо його згадали; інакше "". */
+  deadline?: string;
   /** id нотатки, з якої задача народилася. */
   sourceId?: string;
+};
+
+/** Форма однієї задачі, яку повертає /api/parse. */
+export type ParsedTask = {
+  title: string;
+  priority: Priority;
+  deadline: string;
 };
 
 export const KEYS = {
