@@ -10,7 +10,7 @@ export default function InboxPage() {
 
   function moveToToday(id: string) {
     setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, bucket: "today" } : t)),
+      prev.map((t) => (t.id === id ? { ...t, bucket: "today" as const } : t)),
     );
   }
 
